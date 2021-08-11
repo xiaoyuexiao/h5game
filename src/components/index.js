@@ -7,6 +7,13 @@ export default class GameCanvas extends React.Component {
             type: Phaser.AUTO,
             width: 800,
             height: 600,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 300 },
+                    debug: false
+                }
+            },
             scene: {
                 preload: preload,
                 create: create,
@@ -26,9 +33,43 @@ export default class GameCanvas extends React.Component {
 
         function create ()
         {
+            let platforms;
             this.add.image(400, 300, 'sky');
+            platforms = this.physics.add.staticGroup();
+            platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+            platforms.create(600, 400, 'ground');
+            platforms.create(50, 250, 'ground');
+            platforms.create(750, 220, 'ground');
             this.add.image(400, 300, 'star');
             this.add.image(500, 300, 'star');
+
+            player = this.physics.add.sprite(100, 450, 'dude');
+
+            player.setBounce(0.2);
+            player.setCollideWorldBounds(true);
+            player.body.setGravityY(10300)
+            this.anims.create({
+                key: 'left',
+                frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'turn',
+                frames: [ { key: 'dude', frame: 4 } ],
+                frameRate: 20
+            });
+
+            this.anims.create({
+                key: 'right',
+                frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.physics.add.collider(player, platforms);
+
         }
 
         function update ()
@@ -36,13 +77,11 @@ export default class GameCanvas extends React.Component {
         {
         }
 
+        return (
+            <div>
+                <canvas></canvas>
+            </div>
+        )
         
-
-        
-        console.log("game:",game);
-        return <div>
-            画布:
-            <canvas></canvas>
-        </div>
     }
 }
