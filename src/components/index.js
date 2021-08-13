@@ -20,11 +20,13 @@ export default class GameCanvas extends React.Component {
                 update: update
             }
         };
-        let game = new Phaser.Game(config);
+        new Phaser.Game(config);
         let cursors;
         let player;
+        let player2;
         var score = 0;
         var scoreText;
+        let gameOver;
         function preload ()
         {
             this.load.image('sky', 'assets/sky.png');
@@ -48,16 +50,21 @@ export default class GameCanvas extends React.Component {
             platforms.create(750, 220, 'ground');
 
             /**
-             * 创建玩家
+             * 创建玩家组
              * 1.生成精灵对象
              */
 
-            //1
-            
-            player = this.physics.add.sprite(100, 450, 'dude');
+            let players = this.physics.add.group();
+            player = players.create(100, 450, 'dude');
+            player2 = players.create(300, 450, 'dude');
+            //player = this.physics.add.sprite(100, 450, 'dude');
             player.setBounce(0.2);
             player.setCollideWorldBounds(true);
-            player.body.setGravityY(100)
+            player.body.setGravityY(100);
+
+            player2.setBounce(0.2);
+            player2.setCollideWorldBounds(true);
+            player2.body.setGravityY(100);
 
             //创建向左的帧动画
             this.anims.create({
@@ -83,7 +90,7 @@ export default class GameCanvas extends React.Component {
             });
 
             //添加碰撞检测
-            this.physics.add.collider(player, platforms);
+            this.physics.add.collider(players, platforms);
 
             /**
              * 键盘控制
@@ -119,20 +126,20 @@ export default class GameCanvas extends React.Component {
                     });
                     var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
                     var bomb = bombs.create(x, 16, 'bomb');
-                    bomb.setBounce(1);
+                    bomb.setBounce(1);// 设置为1，炸弹每次碰撞都完全反弹碰撞前的速度，速度没有减少就会一直运动。
                     bomb.setCollideWorldBounds(true);
                     bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
                 }
             }
-            this.physics.add.overlap(player, stars, collectStar, null, this);
+            this.physics.add.overlap(player2, stars, collectStar, null, this);
             //计算得分
-            scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+            scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
             //设置炸弹组
             function hitBomb (player, bomb)
             {
-                this.physics.pause();
                 player.setTint(0xff0000);
                 player.anims.play('turn');
+                this.physics.pause();
                 gameOver = true;
             }
             let bombs = this.physics.add.group();
@@ -143,21 +150,27 @@ export default class GameCanvas extends React.Component {
 
         function update (){
             if (cursors.left.isDown) {
-                player.setVelocityX(-160);
-                player.anims.play('left', true);
+                player2.setVelocityX(-160);
+                player2.anims.play('left', true);
             } else if (cursors.right.isDown) {
-                player.setVelocityX(160);
-                player.anims.play('right', true);
+                player2.setVelocityX(160);
+                player2.anims.play('right', true);
             } else {
-                player.setVelocityX(0);
-                player.anims.play('turn');
+                player2.setVelocityX(0);
+                player2.anims.play('turn');
             }
-
             if (cursors.up.isDown && player.body.touching.down) {
-                player.setVelocityY(-400);
+                player2.setVelocityY(-400);
             }
         }
 
+        /**
+         * 改造点：
+         * 1.支持双人
+         * 2.多种战利品和多种挑战因素
+         * 3.多种背景，多种场景
+         * 4.投币继续游戏
+         * */
         return (
             <div>
                 <canvas></canvas>
